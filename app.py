@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 import pandas as pd
 from fpdf import FPDF
 from io import BytesIO
+import tempfile
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -83,9 +84,14 @@ def export_excel():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
     df.to_excel(writer, index=False, sheet_name='Bookings')
-    writer.save()
+    writer.close()
     output.seek(0)
-    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
+        tmp_file.write(output.read())
+        tmp_file_path = tmp_file.name
+
+    return send_file(tmp_file_path, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      as_attachment=True, download_name='bookings.xlsx')
 
 @app.route('/export_pdf')
@@ -111,10 +117,17 @@ def export_pdf():
         pdf.cell(20, 10, txt=str(booking.place_id), border=1)
         pdf.ln()
 
+    # Use pdf.output directly with BytesIO and provide name argument
     output = BytesIO()
-    pdf.output(output)
+    pdf.output(dest='S').encode('latin1')
+    output.write(pdf.output(dest='S').encode('latin1'))
     output.seek(0)
+
     return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='bookings.pdf')
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
