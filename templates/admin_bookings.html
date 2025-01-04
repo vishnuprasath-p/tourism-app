@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>All Bookings</h1>
+<form method="POST">
+    <input type="text" name="filter_name" placeholder="Filter by user name">
+    <button type="submit" class="button">Filter</button>
+</form>
+<a href="{{ url_for('export_excel') }}" class="button">Export to Excel</a>
+<a href="{{ url_for('export_pdf') }}" class="button">Export to PDF</a>
+<ul>
+    {% for booking in bookings %}
+    <li>{{ booking.user_name }} booked {{ booking.place.name }} on {{ booking.booking_date }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
