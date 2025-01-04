@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Tourism App - Explore Places</h1>
+<div class="place-list">
+    {% for place in places %}
+    <div class="place-card">
+        <h3>{{ place.name }}</h3>
+        <img src="{{ place.image_url }}" alt="{{ place.name }}">
+        <p>{{ place.description }}</p>
+        <p><strong>Price:</strong> ${{ place.amount }}</p>
+        <a href="{{ url_for('book_place', place_id=place.id) }}" class="button">Book Now</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

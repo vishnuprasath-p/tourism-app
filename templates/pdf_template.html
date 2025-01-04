@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bookings Report</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bookings Report</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>User Name</th>
+            <th>User Address</th>
+            <th>Booking Date</th>
+            <th>Place</th>
+        </tr>
+        {% for booking in bookings %}
+        <tr>
+            <td>{{ booking.id }}</td>
+            <td>{{ booking.user_name }}</td>
+            <td>{{ booking.user_address }}</td>
+            <td>{{ booking.booking_date }}</td>
+            <td>{{ booking.place.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
