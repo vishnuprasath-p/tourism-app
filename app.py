@@ -1,6 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import pandas as pd
+from fpdf import FPDF
+from io import BytesIO
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -68,13 +71,50 @@ def admin_bookings():
 
 @app.route('/export_excel')
 def export_excel():
-    # Your logic to export data to an Excel file goes here
-    return 'Excel file exported successfully!'
+    bookings = Booking.query.all()
+    data = {
+        'ID': [booking.id for booking in bookings],
+        'User Name': [booking.user_name for booking in bookings],
+        'User Address': [booking.user_address for booking in bookings],
+        'Booking Date': [booking.booking_date for booking in bookings],
+        'Place ID': [booking.place_id for booking in bookings]
+    }
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='openpyxl')
+    df.to_excel(writer, index=False, sheet_name='Bookings')
+    writer.save()
+    output.seek(0)
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     as_attachment=True, download_name='bookings.xlsx')
 
 @app.route('/export_pdf')
 def export_pdf():
-    # Your logic to export data to a PDF file goes here
-    return 'PDF file exported successfully!'
+    bookings = Booking.query.all()
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Booking List", ln=True, align="C")
+    pdf.ln(10)
+    pdf.cell(20, 10, txt="ID", border=1)
+    pdf.cell(40, 10, txt="User Name", border=1)
+    pdf.cell(50, 10, txt="User Address", border=1)
+    pdf.cell(40, 10, txt="Booking Date", border=1)
+    pdf.cell(20, 10, txt="Place ID", border=1)
+    pdf.ln()
+
+    for booking in bookings:
+        pdf.cell(20, 10, txt=str(booking.id), border=1)
+        pdf.cell(40, 10, txt=booking.user_name, border=1)
+        pdf.cell(50, 10, txt=booking.user_address, border=1)
+        pdf.cell(40, 10, txt=booking.booking_date, border=1)
+        pdf.cell(20, 10, txt=str(booking.place_id), border=1)
+        pdf.ln()
+
+    output = BytesIO()
+    pdf.output(output)
+    output.seek(0)
+    return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='bookings.pdf')
 
 if __name__ == '__main__':
     app.run(debug=True)
